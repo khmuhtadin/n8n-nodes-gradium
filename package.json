@@ -21,7 +21,8 @@
   "scripts": {
     "build": "n8n-node build",
     "lint": "n8n-node lint",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "test": "npm run build && node --test test/*.test.mjs",
+    "release": "release-it"
   },
   "files": [
     "dist"
@@ -37,9 +38,10 @@
     ]
   },
   "devDependencies": {
-    "@n8n/node-cli": "*",
+    "@n8n/node-cli": "^0.57.3",
     "eslint": "9.32.0",
     "prettier": "3.6.2",
+    "release-it": "^19.0.4",
     "typescript": "5.9.2"
   },
   "peerDependencies": {
