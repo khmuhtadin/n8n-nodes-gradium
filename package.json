@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-gradium",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Independent n8n community node for Gradium speech APIs",
   "license": "MIT",
   "author": {
