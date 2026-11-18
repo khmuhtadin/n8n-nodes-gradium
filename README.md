@@ -23,6 +23,10 @@ The OpenAPI server is `https://api.gradium.ai/api` and its TTS path is `/speech/
 
 Import `examples/text-to-speech.json`, assign your credential and replace the voice ID. Run it and inspect the output binary `data` property.
 
+## Workflow template
+
+[`examples/template-gradium-voice-prompt-checks.json`](examples/template-gradium-voice-prompt-checks.json): **Check customer-care voice prompts with Gradium, Google Sheets and Slack**. Import it in n8n (Workflows > Import from file). Setup steps are in the yellow sticky note.
+
 ## Development
 
 Run `npm ci --ignore-scripts`, `npm run build`, `npm run lint`, and `npm test`.

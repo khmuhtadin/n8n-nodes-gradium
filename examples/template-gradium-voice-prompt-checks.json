@@ -1,0 +1,462 @@
+{
+  "name": "Check customer-care voice prompts with Gradium, Google Sheets and Slack",
+  "nodes": [
+    {
+      "id": "n001-0000-4000-8000-000000000000",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "content": "## Check customer-care voice prompts with Gradium, Google Sheets and Slack\n\nBefore a support voice agent goes live, you want to know it says order numbers, names and prices clearly. This workflow reads your test prompts from Google Sheets, speaks each one with Gradium, transcribes the audio back with Gradium, and checks that the key phrase survived. Failed prompts go to Slack.\n\n### How it works\n1. A weekly schedule (or a manual run) reads every prompt marked **ready**.\n2. Gradium turns the prompt into speech with your chosen voice.\n3. Gradium transcribes that audio back to text.\n4. The workflow checks the transcript contains the expected phrase and writes the result to the sheet.\n5. Prompts that fail are collected into one Slack message for a human to listen to.\n\n### Setup steps\n- [ ] Install the community node **n8n-nodes-gradium** (Settings > Community nodes)\n- [ ] Add a Gradium API key from gradium.ai\n- [ ] Create a sheet **Prompts** with columns: id, text, voice_id, expected_phrase, status, transcript, result, checked_at (write numbers in expected_phrase as digits, the way speech-to-text returns them)\n- [ ] Connect Google Sheets and Slack, pick your sheet and channel\n\n### Customization\nChange the voice per row, swap Slack for email, or run it from a webhook in your release pipeline.",
+        "width": 560,
+        "height": 720
+      }
+    },
+    {
+      "id": "n002-0000-4000-8000-000000000000",
+      "name": "1. Load test prompts",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        0
+      ],
+      "parameters": {
+        "content": "## 1. Load test prompts\n\nRuns weekly or by hand and reads every prompt marked ready from Google Sheets.",
+        "width": 580,
+        "height": 570,
+        "color": 7
+      }
+    },
+    {
+      "id": "n006-0000-4000-8000-000000000000",
+      "name": "2. Speak and listen with Gradium",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        0
+      ],
+      "parameters": {
+        "content": "## 2. Speak and listen with Gradium\n\nGradium generates the audio with the row voice, then transcribes it back so you can compare.",
+        "width": 580,
+        "height": 370,
+        "color": 7
+      }
+    },
+    {
+      "id": "n009-0000-4000-8000-000000000000",
+      "name": "3. Score and record",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1860,
+        0
+      ],
+      "parameters": {
+        "content": "## 3. Score and record\n\nCompares transcript and expected phrase ignoring case, spaces and punctuation, then saves the result back to the same sheet row.",
+        "width": 840,
+        "height": 370,
+        "color": 7
+      }
+    },
+    {
+      "id": "n013-0000-4000-8000-000000000000",
+      "name": "4. Flag for a human",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        0
+      ],
+      "parameters": {
+        "content": "## 4. Flag for a human\n\nCollects every failed prompt into one Slack message so someone can listen before release.",
+        "width": 580,
+        "height": 370,
+        "color": 7
+      }
+    },
+    {
+      "id": "n003-0000-4000-8000-000000000000",
+      "name": "Every Monday",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "position": [
+        680,
+        180
+      ]
+    },
+    {
+      "id": "n004-0000-4000-8000-000000000000",
+      "name": "Get ready prompts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Prompts"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "ready"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        940,
+        180
+      ]
+    },
+    {
+      "id": "n005-0000-4000-8000-000000000000",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "parameters": {},
+      "position": [
+        680,
+        380
+      ]
+    },
+    {
+      "id": "n007-0000-4000-8000-000000000000",
+      "name": "Generate speech",
+      "type": "n8n-nodes-gradium.gradium",
+      "typeVersion": 1,
+      "parameters": {
+        "operation": "tts",
+        "text": "={{ $json.text }}",
+        "voiceId": "={{ $json.voice_id }}",
+        "format": "wav",
+        "outputBinary": "data"
+      },
+      "credentials": {
+        "gradiumApi": {
+          "id": "",
+          "name": "Gradium account"
+        }
+      },
+      "position": [
+        1300,
+        180
+      ]
+    },
+    {
+      "id": "n008-0000-4000-8000-000000000000",
+      "name": "Transcribe speech",
+      "type": "n8n-nodes-gradium.gradium",
+      "typeVersion": 1,
+      "parameters": {
+        "operation": "asr",
+        "inputBinary": "data",
+        "inputFormat": "wav",
+        "language": "any"
+      },
+      "credentials": {
+        "gradiumApi": {
+          "id": "",
+          "name": "Gradium account"
+        }
+      },
+      "position": [
+        1560,
+        180
+      ]
+    },
+    {
+      "id": "n010-0000-4000-8000-000000000000",
+      "name": "Score transcript",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "id",
+              "type": "string",
+              "value": "={{ $('Get ready prompts').item.json.id }}"
+            },
+            {
+              "id": "a2",
+              "name": "expected_phrase",
+              "type": "string",
+              "value": "={{ $('Get ready prompts').item.json.expected_phrase }}"
+            },
+            {
+              "id": "a3",
+              "name": "transcript",
+              "type": "string",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "id": "a4",
+              "name": "passed",
+              "type": "boolean",
+              "value": "={{ $json.text.toLowerCase().replace(/[^a-z0-9]/g, '').includes($('Get ready prompts').item.json.expected_phrase.toLowerCase().replace(/[^a-z0-9]/g, '')) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        1920,
+        180
+      ]
+    },
+    {
+      "id": "n011-0000-4000-8000-000000000000",
+      "name": "Save result",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Prompts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "transcript": "={{ $json.transcript }}",
+            "result": "={{ $json.passed ? 'passed' : 'needs review' }}",
+            "checked_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "position": [
+        2180,
+        180
+      ]
+    },
+    {
+      "id": "n012-0000-4000-8000-000000000000",
+      "name": "Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $('Score transcript').item.json.passed }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "position": [
+        2440,
+        180
+      ]
+    },
+    {
+      "id": "n014-0000-4000-8000-000000000000",
+      "name": "Collect failures",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "parameters": {
+        "aggregate": "aggregateIndividualFields",
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "id",
+              "renameField": true,
+              "outputFieldName": "ids"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        2800,
+        180
+      ]
+    },
+    {
+      "id": "n015-0000-4000-8000-000000000000",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#voice-qa"
+        },
+        "text": "=:loud_sound: {{ $json.ids.length }} voice prompt(s) did not come back as expected and need a listen.\nRows: {{ $json.ids.join(', ') }}\nOpen the Prompts sheet to see what Gradium heard.",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": "Slack account"
+        }
+      },
+      "position": [
+        3060,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "Every Monday": {
+      "main": [
+        [
+          {
+            "node": "Get ready prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Get ready prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ready prompts": {
+      "main": [
+        [
+          {
+            "node": "Generate speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate speech": {
+      "main": [
+        [
+          {
+            "node": "Transcribe speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe speech": {
+      "main": [
+        [
+          {
+            "node": "Score transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score transcript": {
+      "main": [
+        [
+          {
+            "node": "Save result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save result": {
+      "main": [
+        [
+          {
+            "node": "Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed?": {
+      "main": [
+        [
+          {
+            "node": "Collect failures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect failures": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
