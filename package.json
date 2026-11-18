@@ -22,7 +22,8 @@
     "build": "n8n-node build",
     "lint": "n8n-node lint",
     "test": "npm run build && node --test test/*.test.mjs",
-    "release": "release-it"
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
   },
   "files": [
     "dist"
