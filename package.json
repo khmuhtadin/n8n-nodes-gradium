@@ -1,0 +1,51 @@
+{
+  "name": "n8n-nodes-gradium",
+  "version": "0.1.0",
+  "description": "Independent n8n community node for Gradium speech APIs",
+  "license": "MIT",
+  "author": {
+    "name": "khmuhtadin",
+    "email": "contact@khmuhtadin.com"
+  },
+  "homepage": "https://github.com/khmuhtadin/n8n-nodes-gradium#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khmuhtadin/n8n-nodes-gradium.git"
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "gradium",
+    "speech",
+    "text-to-speech"
+  ],
+  "scripts": {
+    "build": "n8n-node build",
+    "lint": "n8n-node lint",
+    "test": "npm run build && node --test test/*.test.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/GradiumApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Gradium/Gradium.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "eslint": "9.32.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
