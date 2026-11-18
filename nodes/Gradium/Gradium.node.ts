@@ -48,7 +48,7 @@ export class Gradium implements INodeType {
      const response = await this.helpers.httpRequestWithAuthentication.call(this, 'gradiumApi', req) as string;
      const messages = String(response).split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line) as IDataObject);
      const failure = messages.find(m => m.type === 'error'); if (failure) throw new NodeOperationError(this.getNode(), `Gradium transcription error: ${JSON.stringify(failure)}`, { itemIndex: i });
-     out.push({ json: { text: messages.filter(m => m.type === 'text').map(m => String(m.text ?? '')).join(''), messages }, pairedItem: { item: i } }); continue;
+     out.push({ json: { text: messages.filter(m => m.type === 'text').map(m => String(m.text ?? '').trim()).filter(Boolean).join(' '), messages }, pairedItem: { item: i } }); continue;
     }
     if (op === 'voices') { // https://docs.gradium.ai/api-reference/openapi.json#/paths/~1voices~1/get
      req.url += '/voices/'; req.qs = { include_catalog: this.getNodeParameter('includeCatalog', i), limit: this.getNodeParameter('limit', i), skip: this.getNodeParameter('skip', i) };
